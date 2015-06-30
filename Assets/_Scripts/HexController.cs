@@ -54,6 +54,8 @@ public class HexController : MonoBehaviour {
 
     public bool IsWinBool;
 
+    public InputField SeedInput;
+
     // Use this for initialization
 	void Start () {
         for (int i = 0; i < 7; i++)
@@ -61,27 +63,29 @@ public class HexController : MonoBehaviour {
             HexSprites[i, 0] = StandartSprites[i];
             HexSprites[i, 1] = PastelSprites[i];
         }
-        LoadLevel(true);
+        LoadLevel();
+
 	}
 	
 	// Update is called once per frame
 	void Update () {
-	    if (Input.GetButtonDown("N"))
-	    {
-            LoadLevel(true);
-	    }
-	    if (Input.GetButtonDown("R"))
-	    {
-            LoadLevel(false);
-	    }
 	}
 
-    private void LoadLevel(bool isNew)
+    public void LoadLevel()
     {
         IsWinBool = false;
         _moves = 0;
         MovesText.text = "0";
         WinText.SetActive(false);
+        string seed = SeedInput.text.Trim();
+        
+        if (seed.Length == 0)
+        {
+            seed = System.Guid.NewGuid().ToString().Substring(0,8);
+            SeedInput.text = seed;
+        }
+
+        Random.seed = seed.GetHashCode();
         foreach (var h in _objHexes)
         {
             Destroy(h);
@@ -97,21 +101,14 @@ public class HexController : MonoBehaviour {
                     _hexes[x, y] = 7;
                     continue;
                 }
-                int R;
-                if (isNew)
-                {
-                    R = Random.Range(0, 6);
-                    _best = 1000;
-                    BestText.text = "?";
-                }
-                else
-                {
-                    R = _currentHexes[x, y];
-                }
+                int R = Random.Range(0, 6);
+                _best = 1000;
+                BestText.text = "?";
                 if (x == 9 && y == 8)
                 {
                     R = 6;
-                } _hexes[x, y] = R;
+                } 
+                _hexes[x, y] = R;
                 _currentHexes[x, y] = R;
                 GameObject createObj =
                 Set(R, new Vector2(x + (y % 2 == 0 ? 0.5f : 0), y * 0.75f));

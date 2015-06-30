@@ -8,17 +8,21 @@ public class HexController : MonoBehaviour {
 
     //Red, Blue, Yellow, Green, Black, White
 
-    private int[,] _hexes = new int[20,14];
+    private int width = 20;
 
-    private int[,] _currentHexes = new int[20, 14];
-    
-    private GameObject[,] _objHexes = new GameObject[20,14];
+    private int height = 16;
+
+    private int[,] _hexes;
+
+    private int[,] _currentHexes;
+
+    private GameObject[,] _objHexes;
 
     private int _color;
 
     private int _moves;
 
-    private int[,] _border = new int[20,14];
+    private int[,] _border;
 
     private int[][] _sides =
     {
@@ -36,9 +40,11 @@ public class HexController : MonoBehaviour {
 
     private int _best = 1000;
 
+    private string _seed;
+
     public Sprite[,] HexSprites = new Sprite[7, 2];
     
-    public int Pastel;
+    public bool Pastel;
 
     public GameObject Hex;
 
@@ -56,8 +62,14 @@ public class HexController : MonoBehaviour {
 
     public InputField SeedInput;
 
+    public GameObject[] Buttons;
+
     // Use this for initialization
 	void Start () {
+        _border = new int[width,height];
+        _currentHexes = new int[width, height];
+        _hexes = new int[width,height];
+        _objHexes = new GameObject[width, height];
         for (int i = 0; i < 7; i++)
         {
             HexSprites[i, 0] = StandartSprites[i];
@@ -78,32 +90,38 @@ public class HexController : MonoBehaviour {
         MovesText.text = "0";
         WinText.SetActive(false);
         string seed = SeedInput.text.Trim();
-        
         if (seed.Length == 0)
         {
             seed = System.Guid.NewGuid().ToString().Substring(0,8);
             SeedInput.text = seed;
         }
-
+        if (PlayerPrefs.GetInt(seed) == 0)
+        {
+            PlayerPrefs.SetInt(seed, 1000);
+            BestText.text = "?";
+        }
+        else
+        {
+            BestText.text = PlayerPrefs.GetInt(seed).ToString();
+        }
+        _seed = seed;
         Random.seed = seed.GetHashCode();
         foreach (var h in _objHexes)
         {
             Destroy(h);
         }
-        for (int x = 0; x < 20; x++)
+        for (int x = 0; x < width; x++)
         {
-            for (int y = 0; y < 14; y++)
+            for (int y = 0; y < height; y++)
             {
                 _border[x, y] = 0;
-                if (x == 0 || x == 19 || y == 0 || y == 13)
+                if (x == 0 || x == width - 1 || y == 0 || y == height - 1)
                 {
                     _currentHexes[x, y] = 7; 
                     _hexes[x, y] = 7;
                     continue;
                 }
                 int R = Random.Range(0, 6);
-                _best = 1000;
-                BestText.text = "?";
                 if (x == 9 && y == 8)
                 {
                     R = 6;
@@ -127,9 +145,9 @@ public class HexController : MonoBehaviour {
             MovesAdd();
         }
         bool isSet = false;
-        for (int x = 1; x < 19; x++)
+        for (int x = 1; x < width - 1; x++)
         {
-            for (int y = 1; y < 13; y++)
+            for (int y = 1; y < height - 1; y++)
             {
                 if (_border[x, y] == 1)
                 {
@@ -138,7 +156,7 @@ public class HexController : MonoBehaviour {
                         if (_hexes[x + s[0], y + s[1]] == color)
                         {
                             _hexes[x + s[0], y + s[1]] = 6;
-                            _objHexes[x + s[0], y + s[1]].GetComponent<SpriteRenderer>().sprite = HexSprites[6,Pastel];
+                            _objHexes[x + s[0], y + s[1]].GetComponent<SpriteRenderer>().sprite = HexSprites[6,Pastel ? 1 : 0];
                             isSet = true;
                         }
                     }
@@ -149,7 +167,7 @@ public class HexController : MonoBehaviour {
                             if (_hexes[x + rS[0], y + rS[1]] == color)
                             {
                                 isSet = true;
-                                _objHexes[x + rS[0], y +rS[1]].GetComponent<SpriteRenderer>().sprite = HexSprites[6, Pastel];
+                                _objHexes[x + rS[0], y + rS[1]].GetComponent<SpriteRenderer>().sprite = HexSprites[6, Pastel ? 1 : 0];
                                 _hexes[x + rS[0], y + rS[1]] = 6;            
                             }
                         }
@@ -158,7 +176,7 @@ public class HexController : MonoBehaviour {
                             if (_hexes[x - rS[0], y + rS[1]] == color)
                             {
                                 isSet = true;
-                                _objHexes[x - rS[0], y + rS[1]].GetComponent<SpriteRenderer>().sprite = HexSprites[6, Pastel];
+                                _objHexes[x - rS[0], y + rS[1]].GetComponent<SpriteRenderer>().sprite = HexSprites[6, Pastel ? 1 : 0];
                                 _hexes[x - rS[0], y + rS[1]] = 6;
                             }
                         }
@@ -177,9 +195,9 @@ public class HexController : MonoBehaviour {
 
     private void SetBorder()
     {
-        for (int x = 1; x < 19; x++)
+        for (int x = 1; x < width - 1; x++)
         {
-            for (int y = 1; y < 13; y++)
+            for (int y = 1; y < height - 1; y++)
             {
                 if (_hexes[x, y] == 6)
                 {
@@ -232,9 +250,9 @@ public class HexController : MonoBehaviour {
 
     private void isWin()
     {
-        for (int x = 1; x < 19; x++)
+        for (int x = 1; x < width - 1; x++)
         {
-            for (int y = 1; y < 13; y++)
+            for (int y = 1; y < height - 1; y++)
             {
                 if (_hexes[x, y] == 6)
                 {
@@ -245,28 +263,39 @@ public class HexController : MonoBehaviour {
         }
         WinText.SetActive(true);
         IsWinBool = true;
-        if (_moves < _best)
+        if (_moves < PlayerPrefs.GetInt(_seed))
         {
-            _best = _moves;
-            BestText.text = _best.ToString();
+            PlayerPrefs.SetInt(_seed,_moves);
+            BestText.text = PlayerPrefs.GetInt(_seed).ToString();
         }
     }
 
     private GameObject Set(int color, Vector2 vector)
     {
         GameObject obj = Instantiate(Hex, vector, Quaternion.identity) as GameObject;
-        obj.GetComponent<SpriteRenderer>().sprite = HexSprites[color, Pastel];
+        obj.GetComponent<SpriteRenderer>().sprite = HexSprites[color, Pastel ? 1 : 0];
         return obj;
     }
 
     public void SetPastel()
     {
-        for (int x = 1; x < 19; x++)
+        Pastel = !Pastel;
+        for (int x = 1; x < width - 1; x++)
         {
-            for (int y = 1; y < 13; y++)
+            for (int y = 1; y < height - 1; y++)
             {
-                _objHexes[x, y].GetComponent<SpriteRenderer>().sprite = HexSprites[_hexes[x, y], Pastel];
+                _objHexes[x, y].GetComponent<SpriteRenderer>().sprite = HexSprites[_hexes[x, y], Pastel ? 1 : 0];
             }
         }
+        foreach (var b in Buttons)
+        {
+            b.GetComponent<SpriteRenderer>().sprite =
+            HexSprites[b.GetComponent<Button>().ButtonColor, Pastel ? 1 : 0];   
+        }
+    }
+
+    public void Exit()
+    {
+        Application.Quit();
     }
 }

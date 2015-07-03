@@ -1,7 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
 using UnityEngine.UI;
 
 public class HexController : MonoBehaviour {
@@ -18,27 +15,23 @@ public class HexController : MonoBehaviour {
 
     private GameObject[,] _objHexes;
 
-    private int _color;
-
     private int _moves;
 
     private int[,] _border;
 
-    private int[][] _sides =
+    private readonly int[][] _sides =
     {
-        new int[] {0,1},
-        new int[] {1,0},
-        new int[] {0,-1},
-        new int[] {-1,0}
+        new[] {0,1},
+        new[] {1,0},
+        new[] {0,-1},
+        new[] {-1,0}
     };
 
-    private int[][] _rSides =
+    private readonly int[][] _rSides =
     {
-        new int[] {1, 1},
-        new int[] {1, -1}
+        new[] {1, 1},
+        new[] {1, -1}
     };
-
-    private int _best = 1000;
 
     private string _seed;
 
@@ -121,15 +114,15 @@ public class HexController : MonoBehaviour {
                     _hexes[x, y] = 7;
                     continue;
                 }
-                int R = Random.Range(0, 6);
+                int r = Random.Range(0, 6);
                 if (x == 9 && y == 8)
                 {
-                    R = 6;
+                    r = 6;
                 } 
-                _hexes[x, y] = R;
-                _currentHexes[x, y] = R;
+                _hexes[x, y] = r;
+                _currentHexes[x, y] = r;
                 GameObject createObj =
-                Set(R, new Vector2(x + (y % 2 == 0 ? 0.5f : 0), y * 0.75f));
+                Set(r, new Vector2(x + (y % 2 == 0 ? 0.5f : 0), y * 0.75f));
                 _objHexes[x, y] = createObj;
                 
                 
@@ -162,23 +155,14 @@ public class HexController : MonoBehaviour {
                     }
                     foreach (var rS in _rSides)
                     {
-                        if (y%2 == 0)
+                        int dx = y%2 == 0 ? x + rS[0]: x - rS[0];
+
+                        if (_hexes[dx, y + rS[1]] == color)
                         {
-                            if (_hexes[x + rS[0], y + rS[1]] == color)
-                            {
-                                isSet = true;
-                                _objHexes[x + rS[0], y + rS[1]].GetComponent<SpriteRenderer>().sprite = HexSprites[6, Pastel ? 1 : 0];
-                                _hexes[x + rS[0], y + rS[1]] = 6;            
-                            }
-                        }
-                        else
-                        {
-                            if (_hexes[x - rS[0], y + rS[1]] == color)
-                            {
-                                isSet = true;
-                                _objHexes[x - rS[0], y + rS[1]].GetComponent<SpriteRenderer>().sprite = HexSprites[6, Pastel ? 1 : 0];
-                                _hexes[x - rS[0], y + rS[1]] = 6;
-                            }
+                            isSet = true;
+                            _objHexes[x + rS[0], y + rS[1]].GetComponent<SpriteRenderer>().sprite =
+                                HexSprites[6, Pastel ? 1 : 0];
+                            _hexes[x + rS[0], y + rS[1]] = 6;
                         }
                     }
                 }
@@ -190,7 +174,7 @@ public class HexController : MonoBehaviour {
             SetBorder();
             HexSet(color,false);
         }
-        isWin();
+        IsWin();
     }
 
     private void SetBorder()
@@ -204,36 +188,27 @@ public class HexController : MonoBehaviour {
                     bool isAll = true; 
                     foreach (var s in _sides)
                     {
-                        if (_hexes[x+s[0], y+s[1]] == 6)
+                        if (_hexes[x + s[0], y + s[1]] != 6)
                         {
-                            foreach (var rS in _rSides)
-                            {
-                                if (y%2 == 0)
-                                {
-                                    {
-                                        if (_hexes[x + rS[0], y + rS[1]] == 6)
-                                        {
-                                            continue;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    {
-                                        if (_hexes[x - rS[0], y + rS[1]] == 6)
-                                        {
-                                            continue;
-                                        }
-                                    }
-                                }
-                            }
+                            isAll = false;
                         }
-                        isAll = false;
-                        break;
                     }
+                    foreach (var rS in _rSides)
+                    {
+                        int dx = y % 2 == 0 ? x + rS[0] : x - rS[0];
+                        if (_hexes[dx, y + rS[1]] != 6)
+                        {
+                            isAll = false;
+                        }
+                    }
+
                     if (!isAll)
                     {
                         _border[x, y] = 1;
+                    }
+                    else
+                    {
+                        _border[x, y] = 0;
                     }
                 }
             }
@@ -248,7 +223,7 @@ public class HexController : MonoBehaviour {
 
     
 
-    private void isWin()
+    private void IsWin()
     {
         for (int x = 1; x < width - 1; x++)
         {

@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class Button : MonoBehaviour
 {
-    public HexController hexController;
+    public HexController HexController;
 
     public int ButtonColor;
 
@@ -19,9 +18,9 @@ public class Button : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if (!hexController.IsWinBool)
+        if (!HexController.IsWinBool)
         {
-            hexController.HexSet(ButtonColor, true);
+            HexController.HexSet(ButtonColor, true);
         }
     }
 }

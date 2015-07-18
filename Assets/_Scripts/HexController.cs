@@ -5,9 +5,9 @@ public class HexController : MonoBehaviour {
 
     //Red, Blue, Yellow, Green, Black, White
 
-    private int width = 20;
+    private const int Width = 20;
 
-    private int height = 16;
+    private const int Height = 16;
 
     private int[,] _hexes;
 
@@ -59,10 +59,10 @@ public class HexController : MonoBehaviour {
 
     // Use this for initialization
 	void Start () {
-        _border = new int[width,height];
-        _currentHexes = new int[width, height];
-        _hexes = new int[width,height];
-        _objHexes = new GameObject[width, height];
+        _border = new int[Width,Height];
+        _currentHexes = new int[Width, Height];
+        _hexes = new int[Width,Height];
+        _objHexes = new GameObject[Width, Height];
         for (int i = 0; i < 7; i++)
         {
             HexSprites[i, 0] = StandartSprites[i];
@@ -103,12 +103,12 @@ public class HexController : MonoBehaviour {
         {
             Destroy(h);
         }
-        for (int x = 0; x < width; x++)
+        for (int x = 0; x < Width; x++)
         {
-            for (int y = 0; y < height; y++)
+            for (int y = 0; y < Height; y++)
             {
                 _border[x, y] = 0;
-                if (x == 0 || x == width - 1 || y == 0 || y == height - 1)
+                if (x == 0 || x == Width - 1 || y == 0 || y == Height - 1)
                 {
                     _currentHexes[x, y] = 7; 
                     _hexes[x, y] = 7;
@@ -138,9 +138,9 @@ public class HexController : MonoBehaviour {
             MovesAdd();
         }
         bool isSet = false;
-        for (int x = 1; x < width - 1; x++)
+        for (int x = 1; x < Width - 1; x++)
         {
-            for (int y = 1; y < height - 1; y++)
+            for (int y = 1; y < Height - 1; y++)
             {
                 if (_border[x, y] == 1)
                 {
@@ -155,14 +155,23 @@ public class HexController : MonoBehaviour {
                     }
                     foreach (var rS in _rSides)
                     {
-                        int dx = y%2 == 0 ? x + rS[0]: x - rS[0];
-
-                        if (_hexes[dx, y + rS[1]] == color)
+                        if (y%2 == 0)
                         {
-                            isSet = true;
-                            _objHexes[x + rS[0], y + rS[1]].GetComponent<SpriteRenderer>().sprite =
-                                HexSprites[6, Pastel ? 1 : 0];
-                            _hexes[x + rS[0], y + rS[1]] = 6;
+                            if (_hexes[x + rS[0], y + rS[1]] == color)
+                            {
+                                isSet = true;
+                                _objHexes[x + rS[0], y + rS[1]].GetComponent<SpriteRenderer>().sprite = HexSprites[6, Pastel ? 1 : 0];
+                                _hexes[x + rS[0], y + rS[1]] = 6;            
+                            }
+                        }
+                        else
+                        {
+                            if (_hexes[x - rS[0], y + rS[1]] == color)
+                            {
+                                isSet = true;
+                                _objHexes[x - rS[0], y + rS[1]].GetComponent<SpriteRenderer>().sprite = HexSprites[6, Pastel ? 1 : 0];
+                                _hexes[x - rS[0], y + rS[1]] = 6;
+                            }
                         }
                     }
                 }
@@ -179,36 +188,43 @@ public class HexController : MonoBehaviour {
 
     private void SetBorder()
     {
-        for (int x = 1; x < width - 1; x++)
+        for (int x = 1; x < Width - 1; x++)
         {
-            for (int y = 1; y < height - 1; y++)
+            for (int y = 1; y < Height - 1; y++)
             {
                 if (_hexes[x, y] == 6)
                 {
                     bool isAll = true; 
                     foreach (var s in _sides)
                     {
-                        if (_hexes[x + s[0], y + s[1]] != 6)
+                        if (_hexes[x+s[0], y+s[1]] == 6)
                         {
-                            isAll = false;
+                            continue;
                         }
+                        isAll = false;
+                        break;
                     }
                     foreach (var rS in _rSides)
                     {
-                        int dx = y % 2 == 0 ? x + rS[0] : x - rS[0];
-                        if (_hexes[dx, y + rS[1]] != 6)
+                        if (y%2 == 0)
                         {
+                            if (_hexes[x + rS[0], y + rS[1]] == 6)
+                            {
+                                continue;
+                            }
                             isAll = false;
+                            break;
                         }
+                        if (_hexes[x - rS[0], y + rS[1]] == 6)
+                        {
+                            continue;
+                        }
+                        isAll = false;
+                        break;
                     }
-
                     if (!isAll)
                     {
                         _border[x, y] = 1;
-                    }
-                    else
-                    {
-                        _border[x, y] = 0;
                     }
                 }
             }
@@ -225,9 +241,9 @@ public class HexController : MonoBehaviour {
 
     private void IsWin()
     {
-        for (int x = 1; x < width - 1; x++)
+        for (int x = 1; x < Width - 1; x++)
         {
-            for (int y = 1; y < height - 1; y++)
+            for (int y = 1; y < Height - 1; y++)
             {
                 if (_hexes[x, y] == 6)
                 {
@@ -255,9 +271,9 @@ public class HexController : MonoBehaviour {
     public void SetPastel()
     {
         Pastel = !Pastel;
-        for (int x = 1; x < width - 1; x++)
+        for (int x = 1; x < Width - 1; x++)
         {
-            for (int y = 1; y < height - 1; y++)
+            for (int y = 1; y < Height - 1; y++)
             {
                 _objHexes[x, y].GetComponent<SpriteRenderer>().sprite = HexSprites[_hexes[x, y], Pastel ? 1 : 0];
             }
